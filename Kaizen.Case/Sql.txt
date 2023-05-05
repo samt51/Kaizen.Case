@@ -1,0 +1,44 @@
+﻿create database KaizenCase
+go
+use KaizenCase
+
+CREATE PROCEDURE GenerateCodes
+    @characters VARCHAR(20),
+    @length INT,
+    @count INT
+AS
+BEGIN
+    -- Kodları saklamak için kullanılacak tablo
+    CREATE TABLE Codes (
+        ID INT IDENTITY(1,1) PRIMARY KEY,
+        Code VARCHAR(8) NOT NULL
+    )
+
+    -- Kod üretimi
+    WHILE (SELECT COUNT(*) FROM Codes) < @count
+    BEGIN
+        DECLARE @code VARCHAR(8)
+
+        -- Kodun her bir karakteri rastgele seçilir
+        SET @code = ''
+        WHILE LEN(@code) < @length
+        BEGIN
+            SET @code = @code + SUBSTRING(@characters, CAST(LEN(@code) * RAND() + 1 AS INT), 1)
+        END
+
+        -- Kod daha önce oluşturulmuşsa, tekrar oluşturulur
+        IF NOT EXISTS (SELECT * FROM Codes WHERE Code = @code)
+        BEGIN
+            INSERT INTO Codes (Code) VALUES (@code)
+        END
+    END
+
+    -- Oluşturulan kodlar yazdırılır
+    SELECT Code FROM Codes
+END
+
+
+
+
+---
+EXEC GenerateCodes 'ACDEFGHKLMNPRTXYZ234579', 8, 1000
